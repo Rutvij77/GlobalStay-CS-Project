@@ -1,0 +1,46 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container">
+  <div id="listings-row">
+    <% for(let listing of allListings) { %>
+    <a
+      href="/listings/<%= listing._id %>?checkin=<%= typeof checkin !== 'undefined' ? checkin : '' %>&checkout=<%= typeof checkout !== 'undefined' ? checkout : '' %>&guests=<%= typeof guests !== 'undefined' ? guests : 1 %>&totalDays=<%= typeof totalDays !== 'undefined' ? totalDays : 1 %>"
+      class="listing-link"
+    >
+      <div class="card listing-card">
+        <img
+          src="<%= listing.thumbnail.url %>"
+          class="card-img-top"
+          alt="listing_image"
+          loading="lazy"
+        />
+        <div class="card-body">
+          <div class="title-container">
+            <h5 class="listing-title"><%= listing.title %></h5>
+          </div>
+          <div class="price-container">
+            <% const days = typeof totalDays !== 'undefined' ? totalDays : 1; %>
+            <p class="price-text">
+              &#8377; <%= (listing.price * days).toLocaleString("en-IN") %>
+              <span class="per-night">
+                &nbsp; for <%= days %> night<%= days > 1 ? "s" : "" %></span
+              >
+              <span class="dot">&nbsp;&nbsp;•</span>
+            </p>
+            <div class="rating-container">
+              <i class="fas fa-star rating-star"></i>
+              <% if (listing.reviewCount > 0) { %>
+              <span class="rating-number"
+                ><%= listing.avgRating %>(<%= listing.reviewCount %>)</span
+              >
+              <% } else { %>
+              <span class="rating-number">New</span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    <% } %>
+  </div>
+</div>

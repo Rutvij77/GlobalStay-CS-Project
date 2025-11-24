@@ -1,0 +1,448 @@
+<% layout("/layouts/boilerplate") %> <% if (currentBookings.length === 0 &&
+pastBookings.length === 0) { %>
+<div class="no-bookings-container">
+  <h1>My Bookings</h1>
+  <div class="empty-state-content">
+    <div class="empty-state-icon">🧳</div>
+    <h2>No bookings yet!</h2>
+    <p>
+      It looks like you haven't made any bookings yet. Let's find a place for
+      you!
+    </p>
+    <a href="/listings" class="btn btn-primary">Find a place to stay</a>
+  </div>
+</div>
+
+<% } else { %>
+<div class="bookings-container">
+  <h1>My Bookings</h1>
+
+  <div class="toggle-buttons">
+    <% if (currentBookings && currentBookings.length > 0) { %>
+    <button
+      class="toggle-btn <%= currentBookings.length > 0 ? 'active' : '' %>"
+      data-type="current"
+      onclick="showTable('current')"
+    >
+      Current Bookings
+    </button>
+    <% } %> <% if (pastBookings && pastBookings.length > 0) { %>
+    <button
+      class="toggle-btn <%= (!pastBookings || pastBookings.length === 0) ? 'active' : '' %>"
+      data-type="previous"
+      onclick="showTable('previous')"
+    >
+      Previous Bookings
+    </button>
+    <% } %>
+  </div>
+
+  <div
+    id="current-table"
+    class="table-container <%= (!currentBookings || currentBookings.length === 0) ? 'hidden' : '' %>"
+  >
+    <table>
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Title</th>
+          <th>Check-in / Check-out</th>
+          <th>City</th>
+          <th>Total Price</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(let booking of currentBookings) { %>
+        <tr data-booking-id="<%= booking._id %>">
+          <td>
+            <img
+              src="<%= booking.listing.thumbnail.url %>"
+              alt="<%= booking.listing.thumbnail.filename %>"
+              class="property-photo"
+            />
+          </td>
+          <td class="property-title"><%= booking.listing.title %></td>
+          <td>
+            <div class="date-info">
+              <span class="check-in"><%= booking.checkInFormatted %></span>
+              <span class="check-out"><%= booking.checkOutFormatted %></span>
+            </div>
+          </td>
+          <td class="city"><%= booking.listing.address.city %></td>
+          <td class="price">
+            &#8377; <%= booking.totalAmount.toLocaleString("en-IN") %>
+          </td>
+          <td>
+            <span class="status <%= booking.status.toLowerCase() %>">
+              <%= booking.status %>
+            </span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-primary view-booking-btn">
+                View Details
+              </button>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <div
+    id="previous-table"
+    class="table-container <%= (currentBookings && currentBookings.length > 0) ? 'hidden' : '' %>"
+  >
+    <table>
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Title</th>
+          <th>Check-in / Check-out</th>
+          <th>City</th>
+          <th>Total Price</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(let booking of pastBookings) { %>
+        <tr data-booking-id="<%= booking._id %>">
+          <td>
+            <img
+              src="<%= booking.listing.thumbnail.url %>"
+              alt="<%= booking.listing.thumbnail.filename %>"
+              class="property-photo"
+            />
+          </td>
+          <td class="property-title"><%= booking.listing.title %></td>
+          <td>
+            <div class="date-info">
+              <span class="check-in"><%= booking.checkInFormatted %></span>
+              <span class="check-out"><%= booking.checkOutFormatted %></span>
+            </div>
+          </td>
+          <td class="city"><%= booking.listing.address.city %></td>
+          <td class="price">
+            &#8377; <%= booking.totalAmount.toLocaleString("en-IN") %>
+          </td>
+          <td>
+            <span class="status <%= booking.status.toLowerCase() %>">
+              <%= booking.status %>
+            </span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-primary view-booking-btn">View</button>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- View Booking Modal -->
+<div id="view-booking-modal" class="modal-overlay">
+  <div class="booking-modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Booking Details</h2>
+      <button class="modal-close" onclick="closeModal('view-booking-modal')">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="booking-info">
+        <div class="listing-section">
+          <h3 class="section-title">Listing Information</h3>
+          <div class="listing-content">
+            <img id="modal-listing-photo" src="" alt="" class="listing-photo" />
+            <div class="listing-details">
+              <h3 id="modal-listing-title"></h3>
+              <div id="modal-listing-city" class="city"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-section">
+          <h3 class="section-title">Booking Information</h3>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Guest Name</span>
+              <span id="modal-username" class="detail-value"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Guests</span>
+              <span id="modal-guests" class="detail-value"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Check-in</span>
+              <span id="modal-checkin" class="detail-value"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Check-out</span>
+              <span id="modal-checkout" class="detail-value"></span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Total Amount</span>
+              <span id="modal-total" class="detail-value"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status</span>
+              <span id="modal-status" class="detail-value status"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary">View Stay</button>
+      <button
+        id="modal-update-btn"
+        class="btn"
+        onclick="openUpdateModal()"
+        style="display: none"
+      >
+        Update
+      </button>
+      <button
+        id="modal-cancel-btn"
+        class="btn btn-danger"
+        onclick="showCancelConfirmation()"
+        style="display: none"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancel-confirmation-modal" class="modal-overlay">
+  <div class="cancel-modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Cancel This Booking?</h2>
+      <button
+        class="modal-close"
+        onclick="closeModal('cancel-confirmation-modal')"
+      >
+        &times;
+      </button>
+    </div>
+    <form id="cancel-form" method="POST" action="">
+      <div class="modal-body">
+        <div class="cancellation-details">
+          <h4>You are canceling your stay at:</h4>
+          <p class="cancellation-property-title" id="cancel-listing-title"></p>
+          <div class="cancellation-grid">
+            <span class="summary-label">Check-in:</span>
+            <span id="cancel-checkin" class="summary-value"></span>
+            <span class="summary-label">Check-out:</span>
+            <span id="cancel-checkout" class="summary-value"></span>
+            <span class="summary-label">Total Price:</span>
+            <span id="cancel-total" class="summary-value"></span>
+          </div>
+        </div>
+
+        <div class="cancellation-warning">
+          <span class="warning-icon">⚠️</span>
+          <div>
+            <strong>Please Read Carefully:</strong>
+            <p>
+              Canceling this booking may result in fees according to the
+              property's cancellation policy. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger">Confirm Cancelation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="update-booking-modal" class="modal-overlay">
+  <div class="booking-modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Update Your Booking</h2>
+      <button class="modal-close" onclick="closeModal('update-booking-modal')">
+        &times;
+      </button>
+    </div>
+    <form id="update-booking-form">
+      <div class="modal-body">
+        <div class="update-form-section">
+          <div class="date-inputs-row">
+            <div class="date-input-group">
+              <label for="update-checkin-input">Check-in</label>
+              <input
+                type="text"
+                id="update-checkin-input"
+                class="form-control"
+                placeholder="YYYY-MM-DD"
+                readonly="readonly"
+              />
+            </div>
+            <div class="date-input-group">
+              <label for="update-checkout-input">Check-out</label>
+              <input
+                type="text"
+                id="update-checkout-input"
+                class="form-control"
+                placeholder="YYYY-MM-DD"
+                readonly="readonly"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="update-form-section">
+          <label for="update-guests-input">Number of Guests</label>
+          <input
+            id="update-guests-input"
+            type="number"
+            min="1"
+            class="form-control"
+          />
+        </div>
+        <div
+          id="update-form-error-message"
+          class="form-error-message"
+          style="display: none"
+        ></div>
+        <hr class="form-divider" />
+
+        <div id="price-summary-section">
+          <h3 class="section-title">Price Summary</h3>
+          <div class="price-summary-grid">
+            <span>Original Total:</span>
+            <span id="original-price" class="strikethrough"></span>
+
+            <span>New Total:</span>
+            <span id="new-price"></span>
+
+            <span>Nights:</span>
+            <span id="total-nights"></span>
+          </div>
+          <div id="price-difference-message" class="price-difference"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          onclick="closeModal('update-booking-modal')"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" id="review-changes-btn">
+          Review Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="confirm-update-modal" class="modal-overlay">
+  <div class="booking-modal">
+    <form id="update-confirm-form" method="POST" action="">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirm Your Changes</h2>
+        <button
+          class="modal-close"
+          onclick="closeModal('confirm-update-modal')"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="update-comparison-grid">
+          <div class="grid-label"></div>
+          <div class="grid-header">Original</div>
+          <div class="grid-header">Updated</div>
+
+          <div class="comparison-row">
+            <div class="grid-label">Dates</div>
+            <div class="grid-cell original-value">
+              <span id="from-dates"></span>
+            </div>
+            <div class="grid-cell new-value">
+              <span id="to-dates"></span>
+            </div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="grid-label">Guests</div>
+            <div class="grid-cell original-value">
+              <span id="from-guests"></span>
+            </div>
+            <div class="grid-cell new-value">
+              <span id="to-guests"></span>
+            </div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="grid-label">Nights</div>
+            <div class="grid-cell original-value">
+              <span id="from-nights"></span>
+            </div>
+            <div class="grid-cell new-value">
+              <span id="to-nights"></span>
+            </div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="grid-label">Price</div>
+            <div class="grid-cell original-value">
+              <span id="from-price"></span>
+            </div>
+            <div class="grid-cell new-value">
+              <span id="to-price"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="final-impact-message" class="final-impact"></div>
+        <p class="final-warning">This action cannot be undone.</p>
+      </div>
+
+      <input type="hidden" name="booking[checkIn]" id="hidden-checkIn" />
+      <input type="hidden" name="booking[checkOut]" id="hidden-checkOut" />
+      <input type="hidden" name="booking[guests]" id="hidden-guests" />
+      <input
+        type="hidden"
+        name="booking[totalAmount]"
+        id="hidden-totalAmount"
+      />
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          onclick="backToUpdateModal()"
+        >
+          Go Back
+        </button>
+        <button type="submit" class="btn btn-primary" id="finalize-update-btn">
+          Confirm & Finalize
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<script>
+  const allBookingsFromServer = <%- JSON.stringify([...currentBookings, ...pastBookings]) %>;
+
+  const bookingsData = {};
+  allBookingsFromServer.forEach(booking => {
+    bookingsData[booking._id] = booking;
+  });
+</script>

@@ -1,0 +1,74 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container">
+  <div class="auth-container two-column">
+    <div class="auth-column login-column">
+      <div class="auth-header">
+        <div class="logo"></div>
+        <h1 class="auth-title">GLOBALSTAY</h1>
+      </div>
+
+      <div class="auth-form">
+        <div class="welcome-text">
+          <h2>Welcome Back</h2>
+          <p>Please sign in to your account</p>
+        </div>
+
+        <form method="POST" action="/login" id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="username">Username</label>
+            <input
+              type="text"
+              name="username"
+              id="username"
+              class="form-control"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-group">
+              <input
+                type="password"
+                name="password"
+                id="password"
+                class="form-control"
+                placeholder="Enter your password"
+                required
+              />
+              <i class="fas fa-eye input-icon" id="togglePassword"></i>
+            </div>
+          </div>
+          <button class="btn btn-primary">
+            <i class="fas fa-sign-in-alt me-2"></i>Log In
+          </button>
+        </form>
+
+        <div class="switch-form">
+          <p>
+            Don't have an account?
+            <a href="/signup" class="switch-link">Create one here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-column demo-column">
+      <div class="demo-content">
+        <i class="fas fa-tachometer-alt demo-icon"></i>
+        <h3 class="demo-title">Instant Preview</h3>
+        <p class="demo-text">
+          Explore the Bookings Dashboard instantly. See how hosts manage their
+          reservations with an interactive calendar and bookings table—no
+          account needed.
+        </p>
+        <form method="POST" action="/login/demo" class="demo-form">
+          <button type="submit" class="btn btn-secondary">
+            <i class="fas fa-user-shield me-2"></i>View Demo as Host
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

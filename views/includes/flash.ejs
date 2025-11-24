@@ -1,0 +1,25 @@
+<% let flashMessage = {}; if (typeof error !== "undefined" && error.length) {
+flashMessage = { type: 'danger', icon: 'bi-exclamation-triangle-fill', message:
+error }; } else if (typeof success !== "undefined" && success.length) {
+flashMessage = { type: 'success', icon: 'bi-check-circle-fill', message: success
+}; } %> <% if (Object.keys(flashMessage).length > 0) { %>
+<div class="flash-message-container">
+  <div
+    class="alert alert-<%= flashMessage.type %> alert-dismissible fade show d-flex align-items-center"
+    role="alert"
+  >
+    <i class="bi <%= flashMessage.icon %> me-3"></i>
+
+    <div class="flash-message-text flex-grow-1">
+      <%= flashMessage.message %>
+    </div>
+
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+</div>
+<% } %>

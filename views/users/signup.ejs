@@ -1,0 +1,130 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container">
+  <div class="auth-container two-column">
+    <div class="auth-column login-column">
+      <div class="auth-header">
+        <div class="logo"></div>
+        <h1 class="auth-title">GLOBALSTAY</h1>
+      </div>
+
+      <div class="auth-form">
+        <div class="welcome-text">
+          <h2>Join GlobalStay</h2>
+          <p>Create your account to start booking amazing stays</p>
+        </div>
+
+        <form id="signupForm" method="POST" action="/signup" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="form-control"
+              placeholder="Enter a username"
+              required
+            />
+            <div class="error-message" id="usernameError"></div>
+            <div class="success-message" id="usernameSuccess"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-control"
+              placeholder="Enter your email"
+              required
+            />
+            <div class="error-message" id="emailError"></div>
+            <div class="success-message" id="emailSuccess"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-group">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                placeholder="Create a strong password"
+                required
+              />
+              <i class="fas fa-eye input-icon" id="togglePassword"></i>
+            </div>
+            <div class="password-strength">
+              <div class="password-strength-bar" id="passwordStrengthBar"></div>
+            </div>
+            <div class="password-requirements" id="passwordRequirements">
+              <span class="requirement" id="lengthReq"
+                >• At least 8 characters</span
+              >
+              <span class="requirement" id="uppercaseReq"
+                >• 1 uppercase letter</span
+              >
+              <span class="requirement" id="lowercaseReq"
+                >• 1 lowercase letter</span
+              >
+              <span class="requirement" id="numberReq">• 1 number</span>
+              <span class="requirement" id="specialReq"
+                >• 1 special character</span
+              >
+            </div>
+            <div class="error-message" id="passwordError"></div>
+            <div class="success-message" id="passwordSuccess"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword"
+              >Confirm Password</label
+            >
+            <div class="input-group">
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                class="form-control"
+                placeholder="Confirm your password"
+                required
+              />
+              <i class="fas fa-eye input-icon" id="toggleConfirmPassword"></i>
+            </div>
+            <div class="error-message" id="confirmPasswordError"></div>
+            <div class="success-message" id="confirmPasswordSuccess"></div>
+          </div>
+
+          <button class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Create Account
+          </button>
+        </form>
+
+        <div class="switch-form">
+          <p>
+            Already have an account?
+            <a href="/login" class="switch-link">Log in here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="auth-column demo-column">
+      <div class="demo-content">
+        <i class="fas fa-tachometer-alt demo-icon"></i>
+        <h3 class="demo-title">Try Before You Join</h3>
+        <p class="demo-text">
+          Want to see how it works first? Instantly access the Bookings
+          Dashboard to see how hosts track their reservations on a live calendar
+          and data table.
+        </p>
+        <form method="POST" action="/login/demo" class="demo-form">
+          <button type="submit" class="btn btn-secondary">
+            <i class="fas fa-user-shield me-2"></i>View Demo as Host
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

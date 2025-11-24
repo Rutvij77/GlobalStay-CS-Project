@@ -1,0 +1,313 @@
+<% layout("/layouts/boilerplate") %>
+
+<script>
+  const listingData = <%- JSON.stringify(listing) %>;
+</script>
+
+<div class="form-container">
+  <div class="text-center mb-4">
+    <h1 class="display-6 text-primary mb-2">
+      <i class="fas fa-edit me-2"></i>Edit Your Listing
+    </h1>
+    <p class="text-muted">Update the details of your property</p>
+  </div>
+
+  <form
+    method="POST"
+    action="/listings/<%= listing._id %>?_method=PUT"
+    id="propertyForm"
+    novalidate
+    enctype="multipart/form-data"
+  >
+    <div class="section">
+      <h3 class="section-header">
+        <i class="fas fa-info-circle me-2"></i>Basic Information
+      </h3>
+      <div class="mb-4">
+        <label for="title" class="form-label required-label">Property Title</label>
+        <input
+          type="text"
+          class="form-control"
+          id="title"
+          name="listing[title]"
+          required
+          placeholder="Enter a catchy title for your property"
+          value="<%= listing.title %>"
+        />
+        <div class="error-message" id="titleError"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="section">
+      <h3 class="section-header">
+        <i class="fas fa-list-ul me-2"></i>Property Details
+      </h3>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="guests" class="form-label required-label">Number of Guests</label>
+          <input
+            type="number"
+            class="form-control"
+            id="guests"
+            name="listing[details][guests]"
+            required
+            min="1"
+            placeholder="Maximum guests"
+            value="<%= listing.details.guests %>"
+          />
+          <div class="error-message" id="guestsError"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="bedrooms" class="form-label required-label">Bedrooms</label>
+          <input
+            type="number"
+            class="form-control"
+            id="bedrooms"
+            name="listing[details][bedrooms]"
+            required
+            min="1"
+            placeholder="Number of bedrooms"
+            value="<%= listing.details.bedrooms %>"
+          />
+          <div class="error-message" id="bedroomsError"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="bathrooms" class="form-label required-label">Bathrooms</label>
+          <input
+            type="number"
+            class="form-control"
+            id="bathrooms"
+            name="listing[details][bathrooms]"
+            required
+            min="1"
+            step="0.5"
+            placeholder="Number of bathrooms"
+            value="<%= listing.details.bathrooms %>"
+          />
+          <div class="error-message" id="bathroomsError"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="typeOfPlace" class="form-label required-label">Type of Place</label>
+          <select class="form-select" id="typeOfPlace" name="listing[typeOfPlace]" required>
+            <option value="">Select type of place</option>
+            <option value="Entire home" <%= listing.typeOfPlace === 'Entire home' ? 'selected' : '' %>>Entire home</option>
+            <option value="Room" <%= listing.typeOfPlace === 'Room' ? 'selected' : '' %>>Room</option>
+          </select>
+          <div class="error-message" id="typeOfPlaceError"></div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="propertyType" class="form-label required-label">Property Type</label>
+        <select class="form-select" id="propertyType" name="listing[propertyType]" required>
+          <option value="">Select property type</option>
+          <option value="House" <%= listing.propertyType === 'House' ? 'selected' : '' %>>House</option>
+          <option value="Flat" <%= listing.propertyType === 'Flat' ? 'selected' : '' %>>Flat</option>
+          <option value="Guest house" <%= listing.propertyType === 'Guest house' ? 'selected' : '' %>>Guest house</option>
+          <option value="Hotel" <%= listing.propertyType === 'Hotel' ? 'selected' : '' %>>Hotel</option>
+        </select>
+        <div class="error-message" id="propertyTypeError"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="section">
+      <h3 class="section-header">
+        <i class="fas fa-file-alt me-2"></i>Description
+      </h3>
+      <div class="mb-4">
+        <label for="description" class="form-label required-label">Property Description</label>
+        <textarea class="form-control" id="description" name="listing[description]" required rows="6" placeholder="Describe your property..."><%= listing.description %></textarea>
+        <div class="error-message" id="descriptionError"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="section">
+      <h3 class="section-header"><i class="fas fa-images me-2"></i>Media</h3>
+
+      <div class="mb-4">
+        <label class="form-label">Current Thumbnail</label>
+        <div>
+          <img src="<%= listing.thumbnail.url %>" alt="Current Thumbnail" style="width: 150px; height: 150px; object-fit: cover; border-radius: 0.5rem;" />
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Upload New Thumbnail (Optional)</label>
+        <small class="form-text text-muted d-block mb-1">Max file size: 3 MB</small>
+        <div class="image-upload-area" onclick="document.getElementById('thumbnail').click()">
+          <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+          <p class="text-muted mb-0">Click to upload a new thumbnail image</p>
+        </div>
+        <input
+          type="file"
+          id="thumbnail"
+          name="listing[thumbnail]"
+          accept="image/*"
+          style="display: none"
+        />
+        <div class="image-preview" id="thumbnailPreview"></div>
+        <div class="error-message" id="thumbnailError"></div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Manage Current Images</label>
+        <p class="text-muted small">Click the ✗ to mark an image for deletion.</p>
+        <div class="image-preview" id="existingImagesPreview">
+          <% listing.images.forEach(image => { %>
+          <div
+            class="preview-item existing-preview-item"
+            id="image-<%= image.filename %>"
+            data-filename="<%= image.filename %>"
+          >
+            <img src="<%= image.url %>" alt="Property Image" />
+            <button
+              type="button"
+              class="remove-image"
+              onclick="handleDeleteExistingImage(event)"
+            >
+              &times;
+            </button>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div id="deleteImagesContainer"></div>
+
+      <div class="mb-4">
+        <label class="form-label">Add More Images (Optional)</label>
+        <small class="form-text text-muted d-block mb-1">Max file size per image: 3 MB</small>
+        <div class="image-upload-area" onclick="document.getElementById('images').click()">
+          <i class="fas fa-plus fa-2x text-muted mb-2"></i>
+          <p class="text-muted mb-0">Click to select new images to add</p>
+        </div>
+        <input
+          type="file"
+          id="images"
+          name="listing[images]"
+          accept="image/*"
+          multiple
+          style="display: none"
+        />
+        <div class="image-preview" id="newImagesPreview"></div>
+        <div class="image-counter" id="imageCounter"></div>
+        <div class="error-message" id="imagesCountError"></div>
+        <div class="error-message" id="imagesSizeError"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="section">
+      <h3 class="section-header"><i class="fas fa-star me-2"></i>Amenities</h3>
+      <div class="mb-4">
+        <label class="form-label">Select Available Amenities</label>
+        <div class="amenities-grid" id="amenitiesGrid"></div>
+      </div>
+      <div class="custom-amenities-container">
+        <label for="customAmenity" class="form-label">Add Custom Amenities</label>
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            id="customAmenity"
+            placeholder="Type an amenity and press Enter"
+          />
+          <button class="btn btn-outline-primary" type="button" id="addAmenityBtn">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+        <div id="customAmenitiesTags" class="mt-2"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="section">
+      <h3 class="section-header">
+        <i class="fas fa-rupee-sign me-2"></i>Pricing
+      </h3>
+      <div class="mb-4">
+        <label for="price" class="form-label required-label">Price per Night</label>
+        <div class="input-group">
+          <span class="input-group-text">&#8377;</span>
+          <input
+            type="number"
+            class="form-control"
+            id="price"
+            name="listing[price]"
+            required
+            min="1"
+            step="0.01"
+            placeholder="0.00"
+            value="<%= listing.price %>"
+          />
+          <span class="input-group-text">per night</span>
+        </div>
+        <div class="error-message" id="priceError"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="section">
+      <h3 class="section-header"><i class="fas fa-map-marker-alt me-2"></i>Address</h3>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="houseNumber" class="form-label required-label">House Number</label>
+          <input type="text" class="form-control" id="houseNumber" name="listing[address][houseNumber]" required placeholder="House/Flat number" value="<%= listing.address.houseNumber %>">
+          <div class="error-message" id="houseNumberError"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="building" class="form-label required-label">Building / Society Name</label>
+          <input type="text" class="form-control" id="building" name="listing[address][buildingName]" required placeholder="Building or society name" value="<%= listing.address.buildingName %>">
+          <div class="error-message" id="buildingError"></div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="street" class="form-label required-label">Street</label>
+        <input type="text" class="form-control" id="street" name="listing[address][street]" required placeholder="Street address" value="<%= listing.address.street %>">
+        <div class="error-message" id="streetError"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="city" class="form-label required-label">City</label>
+          <input type="text" class="form-control" id="city" name="listing[address][city]" required placeholder="City" value="<%= listing.address.city %>">
+          <div class="error-message" id="cityError"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="state" class="form-label required-label">State</label>
+          <input type="text" class="form-control" id="state" name="listing[address][state]" required placeholder="State/Province" value="<%= listing.address.state %>">
+          <div class="error-message" id="stateError"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="postalCode" class="form-label required-label">Postal Code</label>
+          <input type="text" class="form-control" id="postalCode" name="listing[address][code]" required placeholder="Postal/ZIP code" value="<%= listing.address.code %>">
+          <div class="error-message" id="postalCodeError"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="country" class="form-label required-label">Country</label>
+          <input type="text" class="form-control" id="country" name="listing[address][country]" required placeholder="Country" value="<%= listing.address.country %>">
+          <div class="error-message" id="countryError"></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="text-center mt-4">
+      <a href="/listings/myListings" class="btn btn-back">Cancel</a>
+      <button type="submit" class="btn btn-primary ms-4">
+        <i class="fas fa-save me-2"></i>Save Changes
+      </button>
+    </div>
+  </form>
+</div>

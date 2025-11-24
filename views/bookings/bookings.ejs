@@ -1,0 +1,124 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="bookings-container">
+  <h1><%= listing.title %> Bookings</h1>
+
+  <div class="month-year-controls">
+    <button class="control-nav" id="prev-month">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15,18 9,12 15,6"></polyline>
+      </svg>
+    </button>
+    <div
+      class="control-month-year-display"
+      id="control-month-year-display"
+      tabindex="0"
+      style="position: relative"
+    >
+      <span id="month-year-text"></span>
+      <div class="month-year-picker" id="month-year-picker">
+        <div class="picker-row">
+          <select class="picker-select" id="month-select">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+          </select>
+          <select class="picker-select" id="year-select"></select>
+        </div>
+        <div class="picker-buttons">
+          <button class="picker-btn" id="picker-cancel">Cancel</button>
+          <button class="picker-btn primary" id="picker-apply">Apply</button>
+        </div>
+      </div>
+    </div>
+    <button class="control-nav" id="next-month">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="9,18 15,12 9,6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <div class="main-content">
+    <div class="table-section">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Check-in / Check-out</th>
+              <th>Guests</th>
+              <th>Total Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="bookings-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="calendar-section">
+      <div class="calendar-header">
+        <div class="calendar-month-display" id="calendar-month-display"></div>
+      </div>
+      <div class="calendar-grid">
+        <div class="calendar-day-header">S</div>
+        <div class="calendar-day-header">M</div>
+        <div class="calendar-day-header">T</div>
+        <div class="calendar-day-header">W</div>
+        <div class="calendar-day-header">T</div>
+        <div class="calendar-day-header">F</div>
+        <div class="calendar-day-header">S</div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+      <div class="calendar-legend">
+        <div class="legend-item">
+          <div class="legend-color completed"></div>
+          <span>Completed</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color ongoing"></div>
+          <span>Ongoing</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color upcoming"></div>
+          <span>Upcoming</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color today"></div>
+          <span>Today</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const bookings = <%- JSON.stringify(bookings || []) %>;
+</script>

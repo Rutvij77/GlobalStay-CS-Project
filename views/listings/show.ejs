@@ -1,0 +1,453 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="header-section">
+  <!-- Listing Header -->
+  <h1 class="listing-title"><%= listing.title %></h1>
+
+  <!-- Image Gallery -->
+  <div class="image-gallery">
+    <% listing.images.slice(0, 5).forEach((image, i) => { %> <% if (i === 4 &&
+    listing.images.length > 5) { %>
+    <!-- Last thumbnail shows overlay -->
+    <div class="gallery-image more-overlay" onclick="openLightbox('<%= i %>')">
+      <img src="<%= image.url %>" alt="image" />
+      <div class="overlay">+<%= listing.images.length - 5 %> more</div>
+    </div>
+    <% } else { %>
+    <div class="gallery-image" onclick="openLightbox('<%= i %>')">
+      <img src="<%= image.url %>" alt="image" />
+    </div>
+    <% } %> <% }) %>
+  </div>
+
+  <!-- Listing Details -->
+  <div class="listing-details">
+    <%= listing.details.guests %> guests · <%= listing.details.bedrooms %>
+    bedrooms · <%= listing.details.bathrooms %> bathroom
+  </div>
+  <div class="rating-info">
+    <% if (listing.reviewCount > 0) { %>
+    <span class="rating-star">★</span> <%= listing.avgRating %> ·
+    <strong><%= listing.reviewCount %> reviews</strong>
+    <% } else { %>
+    <span class="no-reviews-text">No reviews yet</span>
+    <% } %>
+  </div>
+</div>
+
+<!-- HR between rating and main content -->
+<hr />
+
+<div class="header-section">
+  <!-- Mobile Booking Card (shows after header on mobile) -->
+  <div class="mobile-booking-card">
+    <div class="price-display">
+      <strong id="totalPrice"
+        >&#8377; <%= (listing.price * totalDays).toLocaleString("en-IN")
+        %></strong
+      >
+      for <%= totalDays %> night<%= totalDays > 1 ? "s" : "" %>
+    </div>
+    <div class="booking-table">
+      <div class="booking-row">
+        <div class="booking-cell">
+          <label for="checkinInputMobile" class="booking-label" name="checkin"
+            >Check-in</label
+          >
+          <input
+            type="text"
+            class="booking-input"
+            id="checkinInputMobile"
+            name="checkin"
+            value="<%= checkin %>"
+            placeholder="YYYY-MM-DD"
+          />
+        </div>
+        <div class="booking-cell">
+          <label for="checkoutInputMobile" class="booking-label" name="checkout"
+            >Check-out</label
+          >
+          <input
+            type="text"
+            class="booking-input"
+            id="checkoutInputMobile"
+            name="checkout"
+            value="<%= checkout %>"
+            placeholder="YYYY-MM-DD"
+          />
+        </div>
+      </div>
+      <div class="booking-row">
+        <div class="booking-cell">
+          <label for="guestsInputMobile" class="booking-label"
+            >Number of Guests</label
+          >
+          <input
+            type="number"
+            class="booking-input"
+            id="guestsInputMobile"
+            name="guests"
+            min="1"
+            value="<%= guests %>"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="validation-message date-prompt"
+      id="mobileValidationMessage"
+    ></div>
+    <div class="validation-message guest-error" id="mobileGuestError"></div>
+    <button class="reserve-btn" onclick="reserve()">Reserve</button>
+  </div>
+
+  <!-- Section 2: Content & Bill (2 columns) -->
+  <div class="content-section">
+    <!-- Left Column: Host Info, Description, Amenities -->
+    <div class="main-content">
+      <!-- Host Info -->
+      <div class="host-info">
+        <h3>Hosted by <%= listing.owner.username %></h3>
+        <div class="host-details">Hosting for <%= hostYears %> years</div>
+      </div>
+
+      <hr />
+
+      <!-- Description -->
+      <div class="description-section">
+        <div class="description collapsed" id="description">
+          <%= listing.description %>
+        </div>
+        <button
+          class="show-more-btn"
+          id="showMoreBtn"
+          onclick="showDescriptionModal()"
+        >
+          Show more
+        </button>
+      </div>
+
+      <hr />
+
+      <!-- Amenities -->
+      <div class="amenities-section">
+        <h3>What this place offers</h3>
+        <div class="amenities-grid" id="amenitiesGrid">
+          <% listing.amenities.slice(0, 10).forEach(function(amenity) { %>
+          <div class="amenity-item"><%= amenity %></div>
+          <% }) %>
+        </div>
+
+        <% if (listing.amenities.length > 10) { %>
+        <button class="btn" onclick="showAllAmenities()">
+          Show all amenities
+        </button>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Right Column: Booking Card -->
+    <div class="booking-card">
+      <div class="price-display">
+        <strong id="totalPrice"
+          >&#8377; <%= (listing.price * totalDays).toLocaleString("en-IN")
+          %></strong
+        >
+        for <%= totalDays %> night<%= totalDays > 1 ? "s" : "" %>
+      </div>
+      <div class="booking-table">
+        <div class="booking-row">
+          <div class="booking-cell">
+            <label for="checkinInput" class="booking-label" name="checkin"
+              >Check-in</label
+            >
+            <input
+              type="text"
+              class="booking-input"
+              id="checkinInput"
+              name="checkin"
+              value="<%= checkin %>"
+              placeholder="YYYY-MM-DD"
+            />
+          </div>
+          <div class="booking-cell">
+            <label for="checkoutInput" class="booking-label" name="checkout"
+              >Check-out</label
+            >
+            <input
+              type="text"
+              class="booking-input"
+              id="checkoutInput"
+              name="checkout"
+              value="<%= checkout %>"
+              placeholder="YYYY-MM-DD"
+            />
+          </div>
+        </div>
+        <div class="booking-row">
+          <div class="booking-cell">
+            <label for="guestsInput" class="booking-label"
+              >Number of Guests</label
+            >
+            <input
+              type="number"
+              class="booking-input"
+              id="guestsInput"
+              name="guests"
+              min="1"
+              value="<%= guests %>"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="validation-message date-prompt"
+        id="desktopValidationMessage"
+      ></div>
+      <div class="validation-message guest-error" id="desktopGuestError"></div>
+      <button class="reserve-btn" onclick="reserve()">Reserve</button>
+    </div>
+  </div>
+
+  <!-- HR between content and reviews -->
+  <hr />
+
+  <!-- Section 3: Reviews (1 column) -->
+  <div class="reviews-section">
+    <div class="reviews-header">
+      <div>
+        <% if (listing.reviewCount > 0) { %>
+        <span class="rating-star">★</span> <%= listing.avgRating %> ·
+        <strong><%= listing.reviewCount %> reviews</strong>
+        <% } else { %>
+        <strong>No reviews yet</strong>
+        <% } %>
+      </div>
+      <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+      <button class="add-review-btn" onclick="showAddReviewModal()">
+        Add a Review
+      </button>
+      <% } %>
+    </div>
+    <% if(listing.reviews && listing.reviews.length > 0) { %>
+    <div class="reviews-grid" id="reviewsGrid">
+      <% listing.reviews.slice(0, 6).forEach(function(review) { %>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-username"><%= review.author.username %></div>
+          <div class="review-rating">
+            <% for(i=1; i<=review.rating; i++) { %> ★ <% } %>
+          </div>
+          <% if(currUser && currUser._id.equals(review.author._id)) { %>
+          <form
+            method="POST"
+            action="/listings/<%=listing._id%>/reviews/<%=review._id%>/delete?_method=DELETE"
+          >
+            <button class="remove-review-btn">Remove</button>
+          </form>
+          <%}%>
+        </div>
+        <div class="review-message"><%= review.comment %></div>
+      </div>
+      <% }) %>
+    </div>
+    <% } %> <% if (listing.reviews.length > 6) { %>
+    <button class="btn" id="showAllReviewsBtn" onclick="showAllReviewsModal()">
+      Show all reviews
+    </button>
+    <% } %>
+  </div>
+
+  <hr />
+
+  <div class="map-section">
+    <h3>Where you'll be</h3>
+    <div id="map"></div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content">
+      <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+      <button class="lightbox-nav lightbox-prev" onclick="prevImage()">
+        ❮
+      </button>
+      <img class="lightbox-image" id="lightboxImage" src="" alt="" />
+      <button class="lightbox-nav lightbox-next" onclick="nextImage()">
+        ❯
+      </button>
+    </div>
+  </div>
+
+  <!-- Amenities Modal -->
+  <div class="modal" id="amenitiesModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('amenitiesModal')">
+        &times;
+      </button>
+      <h3>All amenities</h3>
+      <div style="margin-top: 1rem">
+        <% for(amenity of listing.amenities) { %>
+        <div class="amenity-item"><%= amenity %></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description Modal -->
+  <div class="modal" id="descriptionModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('descriptionModal')">
+        &times;
+      </button>
+      <h3>Property Description</h3>
+      <div style="margin-top: 1rem; line-height: 1.7">
+        <%= listing.description %>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Reviews Modal -->
+  <div class="modal" id="allReviewsModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('allReviewsModal')">
+        &times;
+      </button>
+      <h3>All Reviews</h3>
+      <div id="allReviewsContent" style="margin-top: 1rem">
+        <% listing.reviews.forEach(function(review) { %>
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-username"><%= review.author.username %></div>
+            <div class="review-rating">
+              <% for (var i = 1; i <= review.rating; i++) { %> ★ <% } %>
+            </div>
+            <% if(currUser && currUser._id.equals(review.author._id)) { %>
+            <form
+              method="POST"
+              action="/listings/<%=listing._id%>/reviews/<%=review._id%>/delete?_method=DELETE"
+            >
+              <button class="remove-review-btn">Remove</button>
+            </form>
+            <%}%>
+          </div>
+          <div class="review-message"><%= review.comment %></div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Review Modal -->
+  <div class="modal" id="addReviewModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('addReviewModal')">
+        &times;
+      </button>
+      <h3>Add Your Review</h3>
+      <form
+        method="POST"
+        action="/listings/<%=listing._id%>/reviews"
+        id="reviewForm"
+        style="margin-top: 1rem"
+      >
+        <label for="rating" class="form-label">Rating</label>
+        <fieldset class="starability-grow">
+          <input
+            type="radio"
+            id="no-rate"
+            class="input-no-rate"
+            name="review[rating]"
+            value="1"
+            checked
+            aria-label="No rating."
+          />
+          <input
+            type="radio"
+            id="first-rate1"
+            name="review[rating]"
+            value="1"
+          />
+          <label for="first-rate1" title="Terrible">1 star</label>
+          <input
+            type="radio"
+            id="first-rate2"
+            name="review[rating]"
+            value="2"
+          />
+          <label for="first-rate2" title="Not good">2 stars</label>
+          <input
+            type="radio"
+            id="first-rate3"
+            name="review[rating]"
+            value="3"
+          />
+          <label for="first-rate3" title="Average">3 stars</label>
+          <input
+            type="radio"
+            id="first-rate4"
+            name="review[rating]"
+            value="4"
+          />
+          <label for="first-rate4" title="Very good">4 stars</label>
+          <input
+            type="radio"
+            id="first-rate5"
+            name="review[rating]"
+            value="5"
+          />
+          <label for="first-rate5" title="Amazing">5 stars</label>
+        </fieldset>
+
+        <label for="comment" class="form-label" style="margin-top: 1rem"
+          >Your Review</label
+        >
+        <textarea
+          name="review[comment]"
+          id="reviewComment"
+          class="form-input"
+          placeholder="Share your experience about this property..."
+          rows="4"
+          required
+        ></textarea>
+
+        <button type="submit" class="form-submit">Submit Review</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONFIRMATION POPUP -->
+  <div class="confirmation-popup" id="confirmationPopup">
+    <div class="confirmation-content">
+      <div class="confirmation-header">Confirm Your Reservation</div>
+      <form method="POST" action="/listings/<%= listing._id %>/bookings">
+        <div class="confirmation-details" id="confirmationDetails"></div>
+        <div class="confirmation-buttons">
+          <button
+            type="button"
+            class="confirmation-btn cancel"
+            onclick="cancelReservation()"
+          >
+            Cancel
+          </button>
+          <button class="confirmation-btn confirm">Confirm Reservation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.images = <%- JSON.stringify(listing.images.map(img => img.url)) %>;
+
+  window.bookingData = {
+    price: <%= listing.price %>,
+    totalDays: <%= totalDays %>,
+    maxGuests: <%= listing.details.guests %>,
+    currUser:  <%= currUser ? 'true' : 'false' %>,
+    isOwnerUser: <%= currUser && currUser._id.toString() === listing.owner._id.toString() ? 'true' : 'false' %>,
+    bookedDates: <%- JSON.stringify(bookedDates) %>,
+  };
+
+  window.listingLocation = <%- JSON.stringify(listing.location) %>;
+</script>

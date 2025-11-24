@@ -1,0 +1,514 @@
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/listings"></a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#mainNavContent"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNavContent">
+      <div class="center-nav-container d-none d-lg-flex mx-auto">
+        <div class="d-flex align-items-center">
+          <button
+            class="compact-search-trigger"
+            type="button"
+            onclick="openSearchModal()"
+          >
+            <span class="hide-sm">Anywhere</span>
+            <span class="separator hide-sm"></span>
+            <span class="hide-sm">Any week</span>
+            <span class="separator hide-sm"></span>
+            <span>Add guests</span>
+            <span class="search-icon ms-2">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+          </button>
+
+          <% if (typeof hasSearch !== 'undefined' && hasSearch) { %>
+          <button
+            class="filter-btn ms-3"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#filterModal"
+          >
+            <i class="fa-solid fa-sliders"></i>
+            <span class="d-none d-md-inline">Filters</span>
+          </button>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="d-none d-lg-flex align-items-center ms-auto">
+        <% if (typeof hasListings !== "undefined" && hasListings) { %>
+        <a href="/listings/myListings" class="host-btn"> My Listings </a>
+        <% } else {%>
+        <a href="/listings/new" class="host-btn"> Become a host </a>
+        <% } %>
+
+        <div class="position-relative ms-lg-3">
+          <button class="user-menu-btn" onclick="toggleUserMenu()">
+            <% if (typeof currUser !== "undefined" && currUser) { %>
+            <div class="user-avatar-initial">
+              <%= currUser.username.charAt(0).toUpperCase() %>
+            </div>
+            <% } else { %>
+            <i class="fa-solid fa-user"></i>
+            <% } %>
+          </button>
+
+          <div class="user-dropdown" id="userDropdown">
+            <% if(typeof currUser === "undefined" || !currUser) { %>
+            <a href="/signup">
+              <i class="fa-solid fa-user-plus"></i>
+              <strong>Sign Up</strong>
+            </a>
+            <a href="/login">
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <strong>Log In</strong>
+            </a>
+            <% } %> <% if(typeof currUser === "undefined" || currUser) { %>
+            <a href="/listings/:id/bookings/myBookings">
+              <i class="fa-solid fa-calendar-check"></i>
+              <strong>My Bookings</strong>
+            </a>
+            <% if (typeof hasListings !== "undefined" && hasListings) { %>
+            <a href="/listings/new">
+              <i class="fa-solid fa-house"></i>
+              <strong>Add New Listing</strong>
+            </a>
+            <% } %>
+            <a href="/logout">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <strong>Log Out</strong>
+            </a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="mobile-nav-items d-lg-none mt-3">
+        <% if(typeof currUser !== "undefined" && currUser) { %>
+        <div class="mobile-user-profile">
+          <div class="user-avatar-initial">
+            <%= currUser.username.charAt(0).toUpperCase() %>
+          </div>
+          <div class="mobile-user-details">
+            <span>Welcome back,</span>
+            <strong><%= currUser.username %></strong>
+          </div>
+        </div>
+        <div class="mobile-divider"></div>
+        <% } %>
+        <button
+          class="mobile-search-btn"
+          type="button"
+          onclick="openSearchModal()"
+        >
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Search</span>
+        </button>
+
+        <% if (typeof hasSearch !== 'undefined' && hasSearch) { %>
+        <button
+          class="mobile-filter-btn"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#filterModal"
+        >
+          <i class="fa-solid fa-sliders"></i>
+          <span>Filters</span>
+        </button>
+        <% } %>
+
+        <div class="mobile-divider"></div>
+        <% if(typeof currUser === "undefined" || !currUser) {%>
+        <a href="/login" class="mobile-auth-btn">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Log In</span>
+        </a>
+        <a href="/signup" class="mobile-auth-btn signup">
+          <i class="fa-solid fa-user-plus"></i>
+          <span>Sign Up</span>
+        </a>
+        <% } %> <% if(typeof currUser === "undefined" || currUser) { %>
+        <a href="/listings/:id/bookings/myBookings" class="mobile-host-btn">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>My Bookings</span>
+        </a>
+        <% if (typeof hasListings === "undefined") { hasListings = false; } %>
+        <% if (typeof hasListings !== "undefined" && hasListings) { %>
+        <a href="/listings/myListings" class="mobile-host-btn">
+          <i class="fa-solid fa-list-ul"></i>
+          <span>My Listings</span>
+        </a>
+        <a href="/listings/new" class="mobile-host-btn">
+          <i class="fa-solid fa-house"></i>
+          <span>Add new Listing</span>
+        </a>
+        <% } else {%>
+        <a href="/listings/new" class="mobile-host-btn">
+          <i class="fa-solid fa-house"></i>
+          <span>Become a host</span>
+        </a>
+        <% } %>
+        <a href="/logout" class="mobile-auth-btn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Log Out</span>
+        </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="search-modal" id="searchModal" onclick="closeSearchModal(event)">
+  <div class="search-modal-content" onclick="event.stopPropagation()">
+    <div class="search-modal-header">
+      <h5 class="search-modal-title">Search</h5>
+      <button class="close-modal" onclick="closeSearchModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <form action="/listings/search" method="GET">
+      <div class="modal-search-field">
+        <label for="modal-where">Where</label>
+        <input
+          id="modal-where"
+          name="destination"
+          type="text"
+          placeholder="Search destination"
+        />
+      </div>
+      <div id="date-picker-container">
+        <div class="modal-search-field">
+          <label for="nav-checkin-input">Check in</label>
+          <input
+            id="nav-checkin-input"
+            name="checkin"
+            type="text"
+            placeholder="yyyy-mm-dd"
+            readonly="readonly"
+          />
+        </div>
+        <div class="modal-search-field">
+          <label for="nav-checkout-input">Check out</label>
+          <input
+            id="nav-checkout-input"
+            name="checkout"
+            type="text"
+            placeholder="yyyy-mm-dd"
+            readonly="readonly"
+          />
+        </div>
+      </div>
+      <div id="date-error-message" style="display: none"></div>
+      <div class="modal-search-field">
+        <label for="nav-guests-input">Guests</label>
+        <input
+          id="nav-guests-input"
+          name="guests"
+          type="number"
+          placeholder="Number of guests"
+          min="1"
+        />
+      </div>
+      <button type="submit" class="modal-search-btn">
+        <i class="fa-solid fa-magnifying-glass me-2"></i>
+        Search
+      </button>
+    </form>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="filterModal"
+  tabindex="-1"
+  aria-labelledby="filterModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="filterModalLabel">Filters</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="filter-form" action="/listings/search" method="GET">
+          <input
+            type="hidden"
+            name="destination"
+            value="<%= typeof destination !== 'undefined' ? destination : '' %>"
+          />
+          <input
+            type="hidden"
+            name="checkin"
+            value="<%= typeof checkin !== 'undefined' ? checkin : '' %>"
+          />
+          <input
+            type="hidden"
+            name="checkout"
+            value="<%= typeof checkout !== 'undefined' ? checkout : '' %>"
+          />
+          <input
+            type="hidden"
+            name="guests"
+            value="<%= typeof guests !== 'undefined' ? guests : '' %>"
+          />
+
+          <div class="filter-section">
+            <h6>Type of Place</h6>
+            <div class="btn-group-filter">
+              <input
+                type="radio"
+                class="btn-check"
+                name="type"
+                id="type-any"
+                value="any"
+                autocomplete="off"
+                checked
+              />
+              <label class="btn btn-outline-dark" for="type-any"
+                >Any Type</label
+              >
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="type"
+                id="type-room"
+                value="room"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-dark" for="type-room">Room</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="type"
+                id="type-home"
+                value="entire_home"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-dark" for="type-home"
+                >Entire Home</label
+              >
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <h6>Price Range</h6>
+            <div id="price-slider"></div>
+            <div class="price-inputs">
+              <div class="price-field">
+                <label for="min-price">Minimum</label>
+                <input
+                  type="number"
+                  id="min-price"
+                  name="min_price"
+                  placeholder="₹0"
+                />
+              </div>
+              <div class="price-separator">-</div>
+              <div class="price-field">
+                <label for="max-price">Maximum</label>
+                <input
+                  type="number"
+                  id="max-price"
+                  name="max_price"
+                  placeholder="₹50000+"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <h6>Rooms and Beds</h6>
+            <div class="stepper-input">
+              <label>Bedrooms</label>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn minus">&minus;</button>
+                <span class="stepper-value" data-name="bedrooms">Any</span>
+                <button type="button" class="stepper-btn plus">&plus;</button>
+              </div>
+            </div>
+            <div class="stepper-input">
+              <label>Bathrooms</label>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn minus">&minus;</button>
+                <span class="stepper-value" data-name="bathrooms">Any</span>
+                <button type="button" class="stepper-btn plus">&plus;</button>
+              </div>
+            </div>
+            <input type="hidden" name="bedrooms" value="" />
+            <input type="hidden" name="beds" value="" />
+            <input type="hidden" name="bathrooms" value="" />
+          </div>
+
+          <div class="filter-section">
+            <h6>Property Type</h6>
+            <div class="btn-group-filter property-type">
+              <input
+                type="radio"
+                class="btn-check"
+                name="property_type"
+                id="prop-house"
+                value="house"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-dark" for="prop-house">House</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="property_type"
+                id="prop-flat"
+                value="flat"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-dark" for="prop-flat">Flat</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="property_type"
+                id="prop-guest"
+                value="guest_house"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-dark" for="prop-guest"
+                >Guest House</label
+              >
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="property_type"
+                id="prop-hotel"
+                value="hotel"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-dark" for="prop-hotel">Hotel</label>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <h6>Amenities</h6>
+            <div class="amenities-grid">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="wifi"
+                  name="amenities[]"
+                  id="amenity-wifi"
+                />
+                <label class="form-check-label" for="amenity-wifi">Wifi</label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="ac"
+                  name="amenities[]"
+                  id="amenity-ac"
+                />
+                <label class="form-check-label" for="amenity-ac"
+                  >Air Conditioning</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="kitchen"
+                  name="amenities[]"
+                  id="amenity-kitchen"
+                />
+                <label class="form-check-label" for="amenity-kitchen"
+                  >Kitchen</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="pool"
+                  name="amenities[]"
+                  id="amenity-pool"
+                />
+                <label class="form-check-label" for="amenity-pool">Pool</label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="washing_machine"
+                  name="amenities[]"
+                  id="amenity-washing-machine"
+                />
+                <label class="form-check-label" for="amenity-washing-machine"
+                  >Washing Machine</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="tv"
+                  name="amenities[]"
+                  id="amenity-tv"
+                />
+                <label class="form-check-label" for="amenity-tv">TV</label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="parking"
+                  name="amenities[]"
+                  id="amenity-parking"
+                />
+                <label class="form-check-label" for="amenity-parking"
+                  >Free Parking</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="bbq"
+                  name="amenities[]"
+                  id="amenity-bbq"
+                />
+                <label class="form-check-label" for="amenity-bbq"
+                  >BBQ Grill</label
+                >
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-clear">Clear All</button>
+        <button
+          type="submit"
+          form="filter-form"
+          class="btn btn-primary btn-show"
+        >
+          Show places
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
