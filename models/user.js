@@ -52,9 +52,9 @@ class User {
     if (!data.email) {
       throw new Error("User validation failed: 'email' is required.");
     }
-    if (!data.appIdSub) {
-      throw new Error("User validation failed: 'appIdSub' is required.");
-    }
+    // if (!data.appIdSub) {
+    //   throw new Error("User validation failed: 'appIdSub' is required.");
+    // }
     this.data = data;
   }
 
@@ -112,6 +112,19 @@ class User {
       }
       console.error("Error finding user:", err);
       return null;
+    }
+  }
+
+  static async findById(id) {
+    try {
+      const response = await service.getDocument({
+        db: "users", // Ensure this matches your Cloudant DB name for users
+        docId: id,
+      });
+      return new User(response.result);
+    } catch (err) {
+      if (err.code === 404) return null;
+      throw err; // Propagate other errors
     }
   }
 }

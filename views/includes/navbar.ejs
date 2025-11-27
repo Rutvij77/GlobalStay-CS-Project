@@ -71,7 +71,7 @@
               <i class="fa-solid fa-right-to-bracket"></i>
               <strong>Log In</strong>
             </a>
-            <% } %> <% if(typeof currUser === "undefined" || currUser) { %>
+            <% } %> <% if(typeof currUser !== "undefined" && currUser) { %>
             <a href="/listings/:id/bookings/myBookings">
               <i class="fa-solid fa-calendar-check"></i>
               <strong>My Bookings</strong>
@@ -135,7 +135,7 @@
           <i class="fa-solid fa-user-plus"></i>
           <span>Sign Up</span>
         </a>
-        <% } %> <% if(typeof currUser === "undefined" || currUser) { %>
+        <% } %> <% if(typeof currUser !== "undefined" && currUser) { %>
         <a href="/listings/:id/bookings/myBookings" class="mobile-host-btn">
           <i class="fa-solid fa-calendar-check"></i>
           <span>My Bookings</span>

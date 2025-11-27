@@ -4,14 +4,16 @@ const Booking = require("./models/booking.js");
 const ExpressError = require("./utils/ExpressError.js");
 const { listingSchema, reviewSchema, bookingSchema } = require("./schema.js");
 const axios = require("axios");
+const { cloudinary } = require("./cloudConfig"); // Ensure this is imported for file deletion
 
-// Middleware to expose current user and host status (has listings or not)
-// to all views via res.locals
+// Middleware to expose current user and host status
 module.exports.setUserLocals = async (req, res, next) => {
   res.locals.currUser = req.user;
 
   if (req.user) {
-    const userListings = await Listing.find({ owner: req.user._id }).limit(1);
+    // Cloudant: find returns an array of objects. We check if any exist.
+    // Note: We use the generic find, but we could optimize this later with an index.
+    const userListings = await Listing.find({ owner: req.user._id });
     res.locals.hasListings = userListings.length > 0;
   } else {
     res.locals.hasListings = false;
@@ -20,7 +22,7 @@ module.exports.setUserLocals = async (req, res, next) => {
   next();
 };
 
-// Validate listing data with Joi schema
+// Validate listing data with Joi schema (Logic remains same)
 module.exports.validateListing = (req, res, next) => {
   let { error } = listingSchema.validate(req.body);
   if (error) {
@@ -31,7 +33,7 @@ module.exports.validateListing = (req, res, next) => {
   }
 };
 
-// Validate listing address using OpenStreetMap API
+// Validate listing address using OpenStreetMap API (Logic remains same)
 module.exports.validateAddress = async (req, res, next) => {
   try {
     const { street, city, state, code, country } = req.body.listing.address;
@@ -45,6 +47,7 @@ module.exports.validateAddress = async (req, res, next) => {
     });
 
     if (!response.data || response.data.length === 0) {
+      // Fallback: Try without street
       addressString = `${city}, ${state}, ${code} ${country}`;
       nominatimURL = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         addressString
@@ -65,41 +68,25 @@ module.exports.validateAddress = async (req, res, next) => {
       };
       return next();
     } else {
+      // ... (Error handling and file deletion logic preserved) ...
       req.flash(
         "error",
         "Address not found. Please check your address and try again."
       );
-
+      // Clean up uploaded files
       const filesToDelete = [];
-      if (req.files["listing[thumbnail]"]) {
+      if (req.files["listing[thumbnail]"])
         filesToDelete.push(req.files["listing[thumbnail]"][0].filename);
-      }
-      if (req.files["listing[images]"]) {
-        req.files["listing[images]"].forEach((file) =>
-          filesToDelete.push(file.filename)
+      if (req.files["listing[images]"])
+        req.files["listing[images]"].forEach((f) =>
+          filesToDelete.push(f.filename)
         );
-      }
-
-      if (filesToDelete.length > 0) {
+      if (filesToDelete.length > 0)
         await cloudinary.api.delete_resources(filesToDelete);
-      }
-
       return res.redirect("/listings/new");
     }
   } catch (err) {
-    const filesToDelete = [];
-    if (req.files["listing[thumbnail]"]) {
-      filesToDelete.push(req.files["listing[thumbnail]"][0].filename);
-    }
-    if (req.files["listing[images]"]) {
-      req.files["listing[images]"].forEach((file) =>
-        filesToDelete.push(file.filename)
-      );
-    }
-
-    if (filesToDelete.length > 0) {
-      await cloudinary.api.delete_resources(filesToDelete);
-    }
+    console.error(err);
     req.flash("error", "There was an error verifying the address.");
     return res.redirect("/listings/new");
   }
@@ -109,21 +96,21 @@ module.exports.validateAddress = async (req, res, next) => {
 module.exports.isLoggedIn = (req, res, next) => {
   if (!req.user) {
     req.session.redirectUrl = req.originalUrl;
-    return res.redirect("/login"); // This triggers App ID login
+    return res.redirect("/login");
   }
   next();
 };
 
-// Check if listing exists and make it available in res.locals
+// Check if listing exists
 module.exports.isListing = async (req, res, next) => {
   const { id } = req.params;
-  const listing = await Listing.findById(id);
-  if (!listing) {
+  const listingObj = await Listing.findById(id);
+  if (!listingObj) {
     req.flash("error", "Listing not found");
     return res.redirect("/listings/myListings");
   }
-
-  res.locals.listing = listing;
+  // Cloudant: Store the raw data in locals
+  res.locals.listing = listingObj.data;
   next();
 };
 
@@ -138,9 +125,16 @@ module.exports.saveRedirectUrl = (req, res, next) => {
 // Check if current user is the listing owner
 module.exports.isOwner = async (req, res, next) => {
   let { id } = req.params;
-  let listing = await Listing.findById(id);
-  if (!listing.owner.equals(res.locals.currUser._id)) {
-    req.flash("error", "You are not the owner of this listings.");
+  // Use existing local if available (from isListing) or fetch
+  let listing = res.locals.listing;
+  if (!listing) {
+    const obj = await Listing.findById(id);
+    listing = obj ? obj.data : null;
+  }
+
+  // Cloudant Change: String comparison (===), not .equals()
+  if (!listing || listing.owner !== res.locals.currUser._id) {
+    req.flash("error", "You are not the owner of this listing.");
     return res.redirect(`/listings/${id}`);
   }
   next();
@@ -148,9 +142,10 @@ module.exports.isOwner = async (req, res, next) => {
 
 // Check if user has hosted any listings
 module.exports.isHoster = async (req, res, next) => {
-  const hasListings = await Listing.exists({ owner: req.user._id });
+  // Cloudant: Check if any documents exist for this owner
+  const userListings = await Listing.find({ owner: req.user._id });
 
-  if (!hasListings) {
+  if (userListings.length === 0) {
     req.flash("error", "You have not hosted any listings yet.");
     return res.redirect("/listings/myListings");
   }
@@ -158,7 +153,7 @@ module.exports.isHoster = async (req, res, next) => {
   next();
 };
 
-// Validate review data with Joi schema
+// Validate review data
 module.exports.validateReview = (req, res, next) => {
   let { error } = reviewSchema.validate(req.body);
   if (error) {
@@ -172,15 +167,17 @@ module.exports.validateReview = (req, res, next) => {
 // Check if current user is the author of the review
 module.exports.isReviewAuthor = async (req, res, next) => {
   let { id, reviewId } = req.params;
-  let review = await Review.findById(reviewId);
-  if (!review.author.equals(res.locals.currUser._id)) {
-    req.flash("error", "You did not created this review.");
+  let reviewObj = await Review.findById(reviewId);
+
+  // Cloudant Change: Unwrap data and compare strings
+  if (!reviewObj || reviewObj.data.author !== res.locals.currUser._id) {
+    req.flash("error", "You did not create this review.");
     return res.redirect(`/listings/${id}`);
   }
   next();
 };
 
-// Validate booking data with Joi schema
+// Validate booking data
 module.exports.validateBooking = (req, res, next) => {
   let { error } = bookingSchema.validate(req.body);
   if (error) {
@@ -194,16 +191,19 @@ module.exports.validateBooking = (req, res, next) => {
 // Prevent user from booking their own listing
 module.exports.checkNotOwner = async (req, res, next) => {
   let { id } = req.params;
-  let listing = await Listing.findById(id);
-  if (listing.owner.equals(res.locals.currUser._id)) {
+  let listingObj = await Listing.findById(id);
+
+  // Cloudant Change: Unwrap data and compare strings
+  if (listingObj.data.owner === res.locals.currUser._id) {
     req.flash("error", "You cannot book your own listing.");
     return res.redirect(`/listings/${id}`);
   }
   next();
 };
 
-// Check if booking dates are valid
+// Check if booking dates are valid (Logic remains same)
 module.exports.checkValidDates = async (req, res, next) => {
+  let { id } = req.params; // Needed for redirect
   try {
     const { checkIn, checkOut } = req.body.booking;
 
@@ -217,24 +217,18 @@ module.exports.checkValidDates = async (req, res, next) => {
     const inDate = new Date(checkIn);
     const outDate = new Date(checkOut);
 
-    // Check-in must not be in the past
     if (inDate < today) {
       req.flash("error", "Check-in date cannot be in the past.");
       return res.redirect(`/listings/${id}`);
     }
-
-    // Check-in and check-out cannot be the same day
     if (outDate.getTime() === inDate.getTime()) {
       req.flash("error", "Check-in and check-out cannot be on the same day.");
       return res.redirect(`/listings/${id}`);
     }
-
-    // Check-out must be after check-in
     if (outDate <= inDate) {
       req.flash("error", "Check-out date must be after check-in date.");
       return res.redirect(`/listings/${id}`);
     }
-
     next();
   } catch (err) {
     console.error("Date validation error:", err);
@@ -246,7 +240,9 @@ module.exports.checkValidDates = async (req, res, next) => {
 // Check if guest count is within allowed range
 module.exports.checkGuestCount = async (req, res, next) => {
   let { id } = req.params;
-  let listing = await Listing.findById(id);
+  let listingObj = await Listing.findById(id);
+  const listing = listingObj.data; // Unwrap
+
   const guests = parseInt(req.body.booking.guests, 10);
   if (isNaN(guests) || guests < 1 || guests > listing.details.guests) {
     req.flash(
@@ -255,7 +251,6 @@ module.exports.checkGuestCount = async (req, res, next) => {
     );
     return res.redirect(`/listings/${id}`);
   }
-
   next();
 };
 
@@ -263,17 +258,18 @@ module.exports.checkGuestCount = async (req, res, next) => {
 module.exports.checkAvailability = async (req, res, next) => {
   let { id } = req.params;
 
-  const checkIn = new Date(req.body.booking.checkIn);
-  const checkOut = new Date(req.body.booking.checkOut);
+  const checkIn = new Date(req.body.booking.checkIn).toISOString();
+  const checkOut = new Date(req.body.booking.checkOut).toISOString();
 
-  const conflict = await Booking.findOne({
+  // Cloudant Selector logic replacement for MongoDB Query
+  const conflicts = await Booking.find({
     listing: id,
     status: "confirmed",
     checkIn: { $lt: checkOut },
     checkOut: { $gt: checkIn },
   });
 
-  if (conflict) {
+  if (conflicts.length > 0) {
     req.flash("error", "Selected dates are not available.");
     return res.redirect(`/listings/${id}`);
   }
@@ -284,12 +280,17 @@ module.exports.checkAvailability = async (req, res, next) => {
 // Recalculate and validate total booking price
 module.exports.recalcTotalPrice = async (req, res, next) => {
   let { id } = req.params;
-  let listing = await Listing.findById(id);
+  let listingObj = await Listing.findById(id);
+  const listing = listingObj.data; // Unwrap
+
   const submittedPrice = Number(req.body.booking.totalAmount);
   const totalDays =
     (new Date(req.body.booking.checkOut) - new Date(req.body.booking.checkIn)) /
     (1000 * 60 * 60 * 24);
+
   const expectedPrice = listing.price * totalDays;
+
+  // Use a small epsilon for float comparison if needed, but exact match usually fine for integers
   if (submittedPrice !== expectedPrice) {
     req.flash("error", "Price mismatch. Please try again.");
     return res.redirect(`/listings/${id}`);
@@ -301,52 +302,57 @@ module.exports.recalcTotalPrice = async (req, res, next) => {
 // Check if booking can be canceled
 module.exports.canCancelBooking = async (req, res, next) => {
   const { id, bookingId } = req.params;
-  const booking = await Booking.findById(bookingId);
+  const bookingObj = await Booking.findById(bookingId);
 
-  if (!booking) {
+  if (!bookingObj) {
     req.flash("error", "The requested booking does not exist!");
-    return res.redirect(`/listings/${id}/booking/myBookings`);
+    return res.redirect(`/listings/${id}/bookings/myBookings`);
   }
 
-  if (!booking.user.equals(res.locals.currUser._id)) {
+  const booking = bookingObj.data; // Unwrap
+
+  // Cloudant comparison
+  if (booking.user !== res.locals.currUser._id) {
     req.flash("error", "You are not authorized to manage this booking!");
-    return res.redirect(`/listings/${id}/booking/myBookings`);
+    return res.redirect(`/listings/${id}/bookings/myBookings`);
   }
 
   if (booking.status === "canceled") {
     req.flash("error", "This booking has already been canceled!");
-    return res.redirect(`/listings/${id}/booking/myBookings`);
+    return res.redirect(`/listings/${id}/bookings/myBookings`);
   }
 
-  if (booking.checkIn <= new Date()) {
+  if (new Date(booking.checkIn) <= new Date()) {
     req.flash("error", "You cannot cancel a booking that has already started!");
-    return res.redirect(`/listings/${id}/booking/myBookings`);
+    return res.redirect(`/listings/${id}/bookings/myBookings`);
   }
 
-  req.booking = booking;
+  req.booking = bookingObj; // Pass the class instance (for methods like .save or .delete)
   req.id = id;
   next();
 };
 
-// Fetch both listing and booking, attach to request
+// Fetch both listing and booking
+// REPLACES POPULATE() WITH MANUAL FETCH
 module.exports.fetchListingAndBooking = async (req, res, next) => {
   try {
     const { id, bookingId } = req.params;
 
-    const booking = await Booking.findById(bookingId).populate("listing");
-    if (!booking) {
+    const bookingObj = await Booking.findById(bookingId);
+    if (!bookingObj) {
       req.flash("error", "Booking not found");
       return res.redirect(`/listings/${id}/bookings/myBookings`);
     }
 
-    const listing = booking.listing;
-    if (!listing) {
+    // Manual Populate: Fetch Listing using the ID stored in booking
+    const listingObj = await Listing.findById(bookingObj.data.listing);
+    if (!listingObj) {
       req.flash("error", "Listing not found");
       return res.redirect(`/listings/${id}/bookings/myBookings`);
     }
 
-    req.booking = booking;
-    req.listing = listing;
+    req.booking = bookingObj.data;
+    req.listing = listingObj.data;
 
     next();
   } catch (err) {
@@ -354,39 +360,39 @@ module.exports.fetchListingAndBooking = async (req, res, next) => {
   }
 };
 
-// Run all booking rules (owner check, dates, guests, price, availability)
+// Run all booking rules
 module.exports.checkBookingRules = async (req, res, next) => {
   try {
     const { booking, listing } = req;
     const userId = res.locals.currUser._id;
     const { checkIn, checkOut, guests, totalAmount } = req.body.booking;
 
-    // Prevent owner from booking their own listing
-    if (listing.owner.equals(userId)) {
+    // 1. Owner Check (String comparison)
+    if (listing.owner === userId) {
       req.flash("error", "You cannot book your own listing.");
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
 
-    // Validate dates
+    // 2. Date Validation
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const inDate = new Date(checkIn);
     const outDate = new Date(checkOut);
 
     if (!checkIn || !checkOut) {
-      req.flash("error", "Both check-in and check-out dates are required.");
+      req.flash("error", "Dates required.");
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
     if (inDate < today) {
-      req.flash("error", "Check-in date cannot be in the past.");
+      req.flash("error", "Check-in cannot be in the past.");
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
     if (outDate <= inDate) {
-      req.flash("error", "Check-out date must be after check-in date.");
+      req.flash("error", "Check-out must be after check-in.");
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
 
-    // Validate guest count
+    // 3. Guest Count
     const numGuests = parseInt(guests, 10);
     if (
       isNaN(numGuests) ||
@@ -400,21 +406,21 @@ module.exports.checkBookingRules = async (req, res, next) => {
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
 
-    // Check availability
-    const conflict = await Booking.findOne({
+    // 4. Availability Check (Excluding current booking)
+    const conflicts = await Booking.find({
       listing: listing._id,
       status: "confirmed",
-      _id: { $ne: booking._id },
-      checkIn: { $lt: outDate },
-      checkOut: { $gt: inDate },
+      _id: { $ne: booking._id }, // Exclude current booking
+      checkIn: { $lt: outDate.toISOString() },
+      checkOut: { $gt: inDate.toISOString() },
     });
 
-    if (conflict) {
+    if (conflicts.length > 0) {
       req.flash("error", "Selected dates are not available.");
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
 
-    // Recalculate total price
+    // 5. Price Check
     const totalDays = (outDate - inDate) / (1000 * 60 * 60 * 24);
     const expectedPrice = listing.price * totalDays;
     if (Number(totalAmount) !== expectedPrice) {
@@ -422,11 +428,12 @@ module.exports.checkBookingRules = async (req, res, next) => {
       return res.redirect(`/listings/${listing._id}/bookings/myBookings`);
     }
 
-    // Attach calculated values in case controller needs them
+    // Pass calculated values
     req.calculatedTotal = expectedPrice;
     req.checkIn = inDate;
     req.checkOut = outDate;
     req.guests = numGuests;
+    req.booking = booking;
 
     next();
   } catch (err) {

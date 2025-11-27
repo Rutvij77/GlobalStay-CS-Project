@@ -68,20 +68,22 @@ router.get("/auth/callback", (req, res, next) => {
           const username = user.name;
 
           // Find or Create User in MongoDB
-          let dbUser = await User.findOne({ appIdSub });
-          if (!dbUser) {
-            dbUser = new User({ appIdSub, email, username });
-            await dbUser.save();
+          let dbUserObj = await User.findOne({ appIdSub });
+
+          if (!dbUserObj) {
+            dbUserObj = new User({ appIdSub, email, username });
+            await dbUserObj.save();
           }
 
           // Ensure req.user matches the Database User (internal ID)
-          req.user = dbUser;
+          req.user = dbUserObj.data;
 
           // Redirect to original destination or default
           const redirectUrl = req.session.redirectUrl || "/listings";
           delete req.session.redirectUrl;
           return res.redirect(redirectUrl);
         } catch (dbError) {
+          console.error("Error saving user:", dbError);
           req.flash("error", "Error saving user data.");
           return res.redirect("/listings");
         }

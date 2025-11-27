@@ -97,7 +97,7 @@ function showBookingDetails(bookingId) {
     booking.listing.title;
   document.getElementById("modal-listing-city").textContent =
     booking.listing.address.city;
-  document.getElementById("modal-username").textContent = booking.user.username;
+  document.getElementById("modal-username").textContent = booking.guestName;
   document.getElementById("modal-guests").textContent = `${booking.guests} ${
     booking.guests > 1 ? "Guests" : "Guest"
   }`;

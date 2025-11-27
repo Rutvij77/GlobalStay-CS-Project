@@ -74,14 +74,14 @@ module.exports.demoLogin = async (req, res, next) => {
       throw new Error("DEMO_USERNAME is not defined in the .env file.");
     }
 
-    const demoUser = await User.findOne({ username: demoUsername });
+    const demoUserObj = await User.findOne({ username: demoUsername });
 
-    if (!demoUser) {
+    if (!demoUserObj) {
       req.flash("error", "The demo user account is not configured correctly.");
       return res.redirect("/login");
     }
 
-    req.login(demoUser, (err) => {
+    req.login(demoUserObj.data, (err) => {
       if (err) {
         return next(err);
       }
@@ -93,6 +93,7 @@ module.exports.demoLogin = async (req, res, next) => {
       res.redirect("/listings");
     });
   } catch (error) {
+    console.error("Demo login error:", error);
     req.flash(
       "error",
       "Could not log in as demo user. Please try again later."

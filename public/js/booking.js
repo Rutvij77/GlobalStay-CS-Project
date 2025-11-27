@@ -236,7 +236,7 @@ function populateTable(tbodyId, data) {
   }
 
   data.forEach((booking) => {
-    const username = booking.user?.username || "Unknown User";
+    const username = booking.guestName || "Unknown User";
     const guests = booking.guests || 0;
 
     const price =

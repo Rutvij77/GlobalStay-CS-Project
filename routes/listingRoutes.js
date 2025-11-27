@@ -60,6 +60,7 @@ router
       { name: "listing[thumbnail]", maxCount: 1 },
       { name: "listing[images]", maxCount: 10 },
     ]),
+    validateAddress,
     validateListing,
     wrapAsync(listingController.updateListing) // Update listing
   )

@@ -107,7 +107,7 @@
     <div class="main-content">
       <!-- Host Info -->
       <div class="host-info">
-        <h3>Hosted by <%= listing.owner.username %></h3>
+        <h3>Hosted by <%= ownerUsername %></h3>
         <div class="host-details">Hosting for <%= hostYears %> years</div>
       </div>
 
@@ -223,7 +223,7 @@
         <strong>No reviews yet</strong>
         <% } %>
       </div>
-      <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+      <% if(currUser && currUser._id.toString() !== listing.owner) { %>
       <button class="add-review-btn" onclick="showAddReviewModal()">
         Add a Review
       </button>
@@ -234,11 +234,11 @@
       <% listing.reviews.slice(0, 6).forEach(function(review) { %>
       <div class="review-card">
         <div class="review-header">
-          <div class="review-username"><%= review.author.username %></div>
+          <div class="review-username"><%= review.authorUsername %></div>
           <div class="review-rating">
             <% for(i=1; i<=review.rating; i++) { %> ★ <% } %>
           </div>
-          <% if(currUser && currUser._id.equals(review.author._id)) { %>
+          <% if(currUser && currUser._id.toString() === review.author) { %>
           <form
             method="POST"
             action="/listings/<%=listing._id%>/reviews/<%=review._id%>/delete?_method=DELETE"
@@ -318,11 +318,11 @@
         <% listing.reviews.forEach(function(review) { %>
         <div class="review-card">
           <div class="review-header">
-            <div class="review-username"><%= review.author.username %></div>
+            <div class="review-username"><%= review.authorUsername %></div>
             <div class="review-rating">
               <% for (var i = 1; i <= review.rating; i++) { %> ★ <% } %>
             </div>
-            <% if(currUser && currUser._id.equals(review.author._id)) { %>
+            <% if(currUser && currUser._id.toString() === review.author) { %>
             <form
               method="POST"
               action="/listings/<%=listing._id%>/reviews/<%=review._id%>/delete?_method=DELETE"
@@ -445,7 +445,7 @@
     totalDays: <%= totalDays %>,
     maxGuests: <%= listing.details.guests %>,
     currUser:  <%= currUser ? 'true' : 'false' %>,
-    isOwnerUser: <%= currUser && currUser._id.toString() === listing.owner._id.toString() ? 'true' : 'false' %>,
+    isOwnerUser: <%= currUser && currUser._id.toString() === listing.owner ? 'true' : 'false' %>,
     bookedDates: <%- JSON.stringify(bookedDates) %>,
   };
 
